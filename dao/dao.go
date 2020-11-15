@@ -4,14 +4,15 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"phonebook-backend/models"
 
-	"github.com/mongodb/mongo-go-driver/bson"
-	"github.com/mongodb/mongo-go-driver/mongo"
+	"github.com/LuisCusihuaman/phonebook-backend/models"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // CONNECTIONSTRING DB connection string
-const CONNECTIONSTRING = "mongodb://localhost:27017"
+const CONNECTIONSTRING = "MONGODBURI"
 
 // DBNAME Database name
 const DBNAME = "phonebook"
@@ -23,16 +24,25 @@ var db *mongo.Database
 
 // Connect establish a connection to database
 func init() {
-	client, err := mongo.NewClient(CONNECTIONSTRING)
+	clientOptions := options.Client().ApplyURI(CONNECTIONSTRING)
+
+	// Connect to MongoDB
+	client, err := mongo.Connect(context.TODO(), clientOptions)
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = client.Connect(context.Background())
+
+	// Check the connection
+	err = client.Ping(context.TODO(), nil)
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	// Collection types can be used to access the database
 	db = client.Database(DBNAME)
+
+	fmt.Println("Connected to MongoDB!")
+	// Collection types can be used to access the database
 }
 
 // InsertManyValues inserts many items from byte slice
@@ -58,8 +68,9 @@ func InsertOneValue(person models.Person) {
 
 // GetAllPeople returns all people from DB
 func GetAllPeople() []models.Person {
-	cur, err := db.Collection(COLLNAME).Find(context.Background(), nil, nil)
+	cur, err := db.Collection(COLLNAME).Find(context.TODO(), bson.D{})
 	if err != nil {
+		fmt.Println("exploto")
 		log.Fatal(err)
 	}
 	var elements []models.Person
@@ -90,18 +101,13 @@ func DeletePerson(person models.Person) {
 // UpdatePerson updates an existing person
 func UpdatePerson(person models.Person, personID string) {
 	doc := db.Collection(COLLNAME).FindOneAndUpdate(
-		context.Background(),
-		bson.NewDocument(
-			bson.EC.String("id", personID),
-		),
-		bson.NewDocument(
-			bson.EC.SubDocumentFromElements("$set",
-				bson.EC.String("firstname", person.Firstname),
-				bson.EC.String("lastname", person.Lastname),
-				bson.EC.String("contactinfo.city", person.City),
-				bson.EC.String("contactinfo.zipcode", person.Zipcode),
-				bson.EC.String("contactinfo.phone", person.Phone)),
-		),
-		nil)
+		context.Background(), bson.M{
+			"id": personID,
+			"$set": bson.M{
+				"firstname":           person.Firstname,
+				"lastname":            person.Lastname,
+				"contactinfo.city":    person.City,
+				"contactinfo.zipcode": person.Zipcode,
+				"contactinfo.phone":   person.Phone}}, nil)
 	fmt.Println(doc)
 }

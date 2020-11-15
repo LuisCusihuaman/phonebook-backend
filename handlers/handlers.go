@@ -3,8 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
-	"phonebook-backend/dao"
-	"phonebook-backend/models"
+
+	"github.com/LuisCusihuaman/phonebook-backend/dao"
+	"github.com/LuisCusihuaman/phonebook-backend/models"
 
 	"github.com/gorilla/mux"
 )
