@@ -7,11 +7,13 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"phonebook-backend/handlers"
-	"phonebook-backend/models"
+
+	"github.com/LuisCusihuaman/phonebook-backend/handlers"
+	"github.com/LuisCusihuaman/phonebook-backend/models"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/gorilla/mux"
-	"github.com/mongodb/mongo-go-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // DBNAME Database name
@@ -21,14 +23,14 @@ const DBNAME = "phonebook"
 const COLLECTION = "people"
 
 // CONNECTIONSTRING DB connection string
-const CONNECTIONSTRING = "mongodb://localhost:27017"
+const CONNECTIONSTRING = "MONGODBURI"
 
 func init() {
 	// Populates database with dummy data
 
 	var people []models.Person
 
-	client, err := mongo.NewClient(CONNECTIONSTRING)
+	client, err := mongo.NewClient(options.Client().ApplyURI(CONNECTIONSTRING))
 	if err != nil {
 		log.Fatal(err)
 	}
